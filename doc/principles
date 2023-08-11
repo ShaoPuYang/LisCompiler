@@ -1,0 +1,74 @@
+# Copyright 2023, liserver. All rights reserved.
+
+program             ::= {declaration}
+
+declaration         ::= include_declaration 
+                      | import_declaration 
+                      | variable_declaration 
+                      | function_declaration 
+                      | class_declaration 
+                      | namespace_declaration
+
+include_declaration ::= "#include" "<" string_constant ">"
+                      | "#include" "\"" string_constant "\""
+import_declaration  ::= "$import" identifier
+
+variable_declaration ::= type identifier ["=" operand] ";"
+
+type                ::= "string"
+                      | "int"
+                      | "float"
+                      | "double"
+                      | "bool"
+                      | identifier
+
+operand             ::= string | integer | float | boolean | function_call | expression
+
+function_declaration::= type function_name "(" [parameters] ")" function_end
+
+function_end        ::= compound_statement
+                      | ";"
+
+function_name       ::= identifier
+
+parameters          ::= [parameter {"," parameter}]
+parameter           ::= type identifier ["=" default_value]
+
+default_value       ::= string | integer | float | boolean | type "(" [parameters] ")"
+
+compound_statement  ::= "{" {statement} "}" [";"]
+
+statement           ::= variable_declaration
+                      | expression_statement 
+                      | compound_statement
+                      | return_statement
+                      
+expression_statement::= expression ";"
+
+return_statement    ::= "return" [operand] ";"
+
+expression          ::= operand
+                      | operand binary_operators operand
+                      | unary_operators operand
+
+binary_operators    ::= "+" | "-" | "*" | "/" | "<" | ">" | "==" | "!=" | "&&" | "||"
+
+unary_operators     ::= "!"
+
+class_declaration   ::= "class" identifier [":" identifier] "{" {class_members} "}"
+
+class_member        ::= variable_declaration 
+                      | function_declaration
+                      | "public:"
+                      | "private:"
+
+class_members       ::= class_member {class_member}
+
+namespace_declaration::= "namespace" identifier "{" {namespace_members} "}"
+
+namespace_members   ::= class_declaration | function_declaration | variable_declaration
+
+identifier          ::= letter {letter | digit}
+letter              ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_"
+digit               ::= "0" | "1" | ... | "9"
+integer             ::= digit {digit}

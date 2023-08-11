@@ -1,0 +1,75 @@
+// Copyright 2023, liserver. All rights reserved.
+
+#ifndef lis
+    #error ;
+#endif
+
+#include <iosteam> // C plus plus
+$import  <iosteam> // Lis
+
+string a = "Hello, world!";
+int    b = 1;
+float  c = 1.0;
+double d = 1.0;
+bool   e = true;
+
+int Sum(int a, int b = 0)
+{
+    return a + b;
+}
+
+float Sum(float a, float b = 0.0)
+{
+    return a + b;
+}
+
+double Sum(double a, double b = 0.0)
+{
+    return a + b;
+}
+
+int Sum(int a, int b, int c)
+{
+    return a + b + c;
+}
+
+void Print(string str)
+{
+    system::println(str);
+}
+
+namespace ConsoleSpace
+{
+    class Console
+    {
+    public:
+        void Print(string str)
+        {
+            system::println(str);
+        }
+    };
+
+    class console : public Console
+    {
+    public:
+        void Print(string str)
+        {
+            system::println(str);
+        }
+    };
+};
+
+enum Test
+{
+    A = 0,
+    B = 1,
+    C = 2
+};
+
+int main(int argc, char **argv)
+{
+    system::output(a);
+    system::output("Hello, world!");
+    Test test = Test::A;
+    return 0;
+}
