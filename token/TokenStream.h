@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../core/Compiler.h"
+#include "library/console/prints.h"
 
 enum TokenCode
 {
@@ -59,8 +60,6 @@ enum TokenCode
     TK_OPERATOR_AND,           // &&
     TK_OPERATOR_OR,            // ||
     TK_OPERATOR_NOT,           // !
-    TK_OPERATOR_DOUBLE,        // "
-    TK_OPERATOR_SINGLE,        // '
 
     // Delimiters
     TK_DELIMITER_LEFT_BRACE,        // {
@@ -74,6 +73,8 @@ enum TokenCode
     TK_DELIMITER_DOT,               // .
     TK_DELIMITER_COLON,             // :
     TK_DELIMITER_ARROW,             // ->
+    TK_DELIMITER_DOUBLE,            // "
+    TK_DELIMITER_SINGLE,            // '
 
     // Literals
     TK_LITERAL_INT,    // 123
@@ -135,19 +136,25 @@ namespace TokenSpace
             this->tokens = tokens;
         }
 
-        Token Next()
+        void Next()
         {
-            if (number < Size())
+            if (number + 1 < Size())
             {
-                Token token = this->tokens[this->number];
                 this->number += 1;
-                return token;
             }
             else
             {
                 this->number = 0;
-                return this->tokens[this->number];
             }
+        }
+
+        void Up()
+        {
+            if (number - 1 > 0)
+                this->number -= 1;
+            else
+                this->number = Size()-1;
+            
         }
 
         inline Token GetCurToken()
@@ -163,6 +170,20 @@ namespace TokenSpace
         inline Token GetNextToken()
         {
             return this->tokens[this->number + 1];
+        }
+
+        void match(std::string str)
+        {
+            if (this->GetCurToken().value != str)
+                Message::Error("Unknow token [" + str + "].", CP_ERR, CP_UNKNOW_TOKEN, true);
+            this->Next();
+        }
+
+        void match(TokenCode tk)
+        {
+            if (this->GetCurToken().code != tk)
+                Message::Error("Unknow token [" + this->GetCurToken().value + "].", CP_ERR, CP_UNKNOW_TOKEN, true);
+            this->Next();
         }
     };
 

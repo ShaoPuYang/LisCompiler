@@ -35,6 +35,9 @@
 #define CP_ARG_MUST_NOT_END 4
 #define CP_VERSION_ERROR 5
 
+#define CP_UNKNOW_TOKEN 6
+#define CP_NOTFIND_TOKEN 7
+
 // This project is support windows macos and linux. So, first we need to know the system.
 enum __Platform
 {

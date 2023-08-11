@@ -22,7 +22,9 @@ type                ::= "string"
                       | "bool"
                       | identifier
 
-operand             ::= string | integer | float | boolean | function_call | expression
+operand             ::= string | integer | float | boolean | function_call | operand binary_operators operand | unary_operators operand
+
+function_call       ::= identifier "(" [parameters] ")"
 
 function_declaration::= type function_name "(" [parameters] ")" function_end
 
@@ -31,7 +33,7 @@ function_end        ::= compound_statement
 
 function_name       ::= identifier
 
-parameters          ::= [parameter {"," parameter}]
+parameters          ::= parameter {"," parameter}
 parameter           ::= type identifier ["=" default_value]
 
 default_value       ::= string | integer | float | boolean | type "(" [parameters] ")"

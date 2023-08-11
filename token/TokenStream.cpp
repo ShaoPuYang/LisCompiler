@@ -365,15 +365,45 @@ TokenSpace::TokenStream TokenSpace::ReadString(std::string str)
                 break;
             case '"':
             {
-                token.code = TokenCode::TK_OPERATOR_DOUBLE;
-                token.value = '"';
+                std::string tmpvalue = "";
+                while (str[i] != '"' || str[i] == '\n')
+                {
+                    tmpvalue += str[i];
+                    i++;
+                }
+                if (str[i] == '\n')
+                {
+                    token.code = TokenCode::TK_DELIMITER_DOUBLE;
+                    token.value = '"';
+                    token.line++;
+                }
+                else
+                {
+                    token.code = TokenCode::TK_LITERAL_STRING;
+                    token.value = tmpvalue + '"';
+                }
                 i++;
                 break;
             }
             case '\'':
             {
-                token.code = TokenCode::TK_OPERATOR_SINGLE;
-                token.value = "'";
+                std::string tmpvalue = "";
+                while (str[i] != '\'' || str[i] == '\n')
+                {
+                    tmpvalue += str[i];
+                    i++;
+                }
+                if (str[i] == '\n')
+                {
+                    token.code = TokenCode::TK_DELIMITER_SINGLE;
+                    token.value = '\'';
+                    token.line++;
+                }
+                else
+                {
+                    token.code = TokenCode::TK_LITERAL_STRING;
+                    token.value = tmpvalue + '\'';
+                }
                 i++;
                 break;
             }

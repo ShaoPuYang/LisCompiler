@@ -41,12 +41,15 @@ int main(int argc, char **argv)
             std::string temp = "File: " + TargetFile + "\n";
             for (int i = 0; i < TargetCodeTokenStream.Size(); i++)
             {
-                Token tempT = TargetCodeTokenStream.Next();
+                TargetCodeTokenStream.Next();
+                Token tempT = TargetCodeTokenStream.GetCurToken();
                 temp += std::to_string((int)tempT.code) + " " + tempT.value + " " + std::to_string(tempT.line) + "\n";
             }
             temp += "FileEnd: " + TargetFile + "\n";
             WriteFile(Configtion.TokenStreamPath, &temp);
         }
+        Parser parser(TargetCodeTokenStream);
+        parser.parse();
     }
 
     return 0; // Return Code 0;
