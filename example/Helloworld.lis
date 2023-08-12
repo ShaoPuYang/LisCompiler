@@ -1,4 +1,3 @@
-int main()
-{
-    return 0;
-}
+// Copyright liserver. All rights reserved.
+
+int a = 0;

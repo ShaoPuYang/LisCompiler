@@ -22,7 +22,10 @@ type                ::= "string"
                       | "bool"
                       | identifier
 
-operand             ::= string | integer | float | boolean | function_call | operand binary_operators operand | unary_operators operand
+operand             ::= primary | unary_expression | binary_expression
+primary             ::= string | integer | float | boolean | function_call
+unary_expression    ::= unary_operators operand
+binary_expression   ::= operand binary_operators operand
 
 function_call       ::= identifier "(" [parameters] ")"
 

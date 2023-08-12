@@ -1,4 +1,4 @@
-/* 
+/*
  * @Copyrigt 2023, liserver. All rights reserved.
  */
 
@@ -62,43 +62,52 @@ void Parser::parse_compound()
     }
 }
 
-void Parser::parse_binary_operators()
+bool Parser::parse_binary_operators()
 {
     if (this->Tokenstream.GetCurToken().value.size() == 1)
     {
         switch (this->Tokenstream.GetCurToken().value[0])
         {
-            case '+':
-                this->Tokenstream.match("+");
-                break;
-            case '-':
-                this->Tokenstream.match("-");
-                break;
-            case '*':
-                this->Tokenstream.match("*");
-                break;
-            case '/':
-                this->Tokenstream.match("/");
-                break;
-            case '<':
-                this->Tokenstream.match("<");
-                break;
-            case '>':
-                this->Tokenstream.match(">");
-                break;
+        case '+':
+            this->Tokenstream.match("+");
+            break;
+        case '-':
+            this->Tokenstream.match("-");
+            break;
+        case '*':
+            this->Tokenstream.match("*");
+            break;
+        case '/':
+            this->Tokenstream.match("/");
+            break;
+        case '<':
+            this->Tokenstream.match("<");
+            break;
+        case '>':
+            this->Tokenstream.match(">");
+            break;
+        default:
+            return false;
         }
     }
     else if (this->Tokenstream.GetCurToken().value.size() == 2)
     {
         if (this->Tokenstream.GetCurToken().value == "==")
             this->Tokenstream.match("==");
-        else if(this->Tokenstream.GetCurToken().value == "!=")
+        else if (this->Tokenstream.GetCurToken().value == "!=")
             this->Tokenstream.match("!=");
-        else if(this->Tokenstream.GetCurToken().value == "&&")
+        else if (this->Tokenstream.GetCurToken().value == "&&")
             this->Tokenstream.match("&&");
-        else if(this->Tokenstream.GetCurToken().value == "||")
+        else if (this->Tokenstream.GetCurToken().value == "||")
             this->Tokenstream.match("||");
+        else
+            return false;
     }
+    else
+    {
+        return false;
+    }
+    return true;
 }
 
 void Parser::parse_unary_operators()
@@ -106,33 +115,55 @@ void Parser::parse_unary_operators()
     this->Tokenstream.match("!");
 }
 
-bool Parser::parse_operand()
+void Parser::parse_operand()
+{
+    if (parse_primary())
+        return;
+    if (parse_unary_expression())
+        return;
+    parse_binary_expression();
+}
+
+bool Parser::parse_primary()
 {
     Token NToken = this->Tokenstream.GetCurToken();
     if (NToken.code == TK_LITERAL_STRING)
         this->Tokenstream.match(TK_LITERAL_STRING);
-    else if(NToken.code == TK_LITERAL_FLOAT)
+    else if (NToken.code == TK_LITERAL_FLOAT)
         this->Tokenstream.match(TK_LITERAL_FLOAT);
-    else if(NToken.code == TK_LITERAL_INT)
+    else if (NToken.code == TK_LITERAL_INT)
         this->Tokenstream.match(TK_LITERAL_INT);
-    else if(NToken.code == TK_IDENTIFIER)
+    else if (NToken.code == TK_IDENTIFIER)
         this->parse_function_call();
-    else if (NToken.value == "!")
-        this->parse_binary_operators();
-    else if (this->parse_operand())
-    {
-        this->parse_binary_operators();
-        this->parse_operand();
-    }
     else
         return false;
     return true;
 }
 
+bool Parser::parse_unary_expression()
+{
+    Token NToken = this->Tokenstream.GetCurToken();
+    if (NToken.value == "!")
+    {
+        this->Tokenstream.match("!");
+        parse_operand();
+        return true;
+    }
+    return false;
+}
+
+void Parser::parse_binary_expression()
+{
+    parse_operand();
+    parse_binary_operators();
+    parse_operand();
+}
+
 void Parser::parse_return()
 {
     this->Tokenstream.match(TK_KEYWORD_RETURN);
-    this->parse_operand();
+    if (this->Tokenstream.GetCurToken().value != ";")
+        this->parse_operand();
     this->Tokenstream.match(";");
 }
 
@@ -146,7 +177,7 @@ void Parser::parse_statement()
         else
             Message::Error("Unknow token [" + this->Tokenstream.GetNextToken().value + "]", CP_ERR, CP_UNKNOW_TOKEN, true);
     }
-    else if(this->Tokenstream.GetCurToken().code == TK_KEYWORD_RETURN)
+    else if (this->Tokenstream.GetCurToken().code == TK_KEYWORD_RETURN)
     {
         this->parse_return();
     }
@@ -168,6 +199,7 @@ void Parser::parse_variable()
     if (this->Tokenstream.GetCurToken().value == "=")
     {
         this->Tokenstream.match("=");
+        this->parse_operand();
     }
     this->Tokenstream.match(";");
 }

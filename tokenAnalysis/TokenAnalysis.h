@@ -30,8 +30,11 @@ public:
     void parse_statement();
     void parse_function_call();
     void parse_return();
-    bool parse_operand();
-    void parse_binary_operators();
+    void parse_operand();
+    bool parse_primary();
+    bool parse_unary_expression();
+    void parse_binary_expression();
+    bool parse_binary_operators();
     void parse_unary_operators();
 
     AST BuildAST(); 
