@@ -1,9 +1,11 @@
 File: example/Helloworld.lis
-59 main 1
-46 ( 1
-47 ) 1
-42 { 2
-5 return 3
-43 } 4
-8 int 1
+8 int 3
+62 main 3
+47 ( 3
+48 ) 3
+43 { 4
+5 return 5
+57 1 5
+50 ; 5
+44 } 6
 FileEnd: example/Helloworld.lis

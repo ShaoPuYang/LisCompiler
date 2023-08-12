@@ -36,7 +36,8 @@ enum TokenCode
     TK_KEYWORD_PUBLIC,    // public
     TK_KEYWORD_PRIVATE,   // private
     TK_KEYWORD_PROTECTED, // protected
-    TK_KEYWORD_SIZEOF,    // Sizeof
+    TK_KEYWORD_SIZEOF,    // sizeof
+    TK_KEYWORD_NAMESPACE, // namespace 
 
     // Operators
     TK_OPERATOR_ADD,           // +
@@ -75,12 +76,14 @@ enum TokenCode
     TK_DELIMITER_ARROW,             // ->
     TK_DELIMITER_DOUBLE,            // "
     TK_DELIMITER_SINGLE,            // '
+    TK_DELIMITER_FMON,              // $
 
     // Literals
     TK_LITERAL_INT,    // 123
     TK_LITERAL_FLOAT,  // 123.456
     TK_LITERAL_DOUBLE, // 123.456
     TK_LITERAL_STRING, // "Hello World"
+    TK_LITERAL_BOOL,   // true false
 
     // Token IDENTIFIER
     TK_IDENTIFIER // identifier
@@ -138,7 +141,7 @@ namespace TokenSpace
 
         void Next()
         {
-            if (number + 1 < Size())
+            if (number < Size())
             {
                 this->number += 1;
             }
@@ -150,7 +153,7 @@ namespace TokenSpace
 
         void Up()
         {
-            if (number - 1 > 0)
+            if (number > 0)
                 this->number -= 1;
             else
                 this->number = Size()-1;

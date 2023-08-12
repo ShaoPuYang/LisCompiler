@@ -1,3 +1,6 @@
 // Copyright liserver. All rights reserved.
 
-int a = 0;
+int main()
+{
+    return 1;
+}

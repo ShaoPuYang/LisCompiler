@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 // TokenAnalysis
 
@@ -21,7 +22,16 @@ class Parser
 private:
     TokenSpace::TokenStream Tokenstream;
 public:
+    bool is_binary_operator(const Token& token);
+
     void parse();
+    void parse_default_value();
+    void parse_import();
+    void parse_namespace_members();
+    void parse_namespace();
+    void parse_class();
+    void parse_class_member();
+    void parse_class_members();
     void parse_variable();
     void parse_function();
     void parse_parameters();

@@ -4,7 +4,7 @@
 
 #include "TokenStream.h"
 
-const char Keyword[][21] = {
+const char Keyword[][22] = {
     "if",
     "else",
     "while",
@@ -24,7 +24,8 @@ const char Keyword[][21] = {
     "public",
     "private",
     "protected",
-    "Sizeof"};
+    "sizeof",
+    "namespace"};
 
 bool IsKeyword(std::string str)
 {
@@ -86,6 +87,10 @@ TokenSpace::TokenStream TokenSpace::ReadString(std::string str)
             {
                 token.code = TokenCode(KeywordCode(token.value));
             }
+            else if(token.value == "true" || token.value == "false")
+            {
+                token.code = TokenCode::TK_LITERAL_BOOL;
+            }
             else
             {
                 if (IsNumber(str[i]))
@@ -124,13 +129,6 @@ TokenSpace::TokenStream TokenSpace::ReadString(std::string str)
         else
             switch (str[i])
             {
-            case '$':
-                while (str[i] != '\n')
-                {
-                    i++;
-                }
-                i++; // The next line
-                break;
             case '+':
                 if (str[i + 1] == '=')
                 {
@@ -404,6 +402,13 @@ TokenSpace::TokenStream TokenSpace::ReadString(std::string str)
                     token.code = TokenCode::TK_LITERAL_STRING;
                     token.value = tmpvalue + '\'';
                 }
+                i++;
+                break;
+            }
+            case '$':
+            {
+                token.code = TokenCode::TK_DELIMITER_FMON;
+                token.value = '$';
                 i++;
                 break;
             }

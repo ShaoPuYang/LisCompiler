@@ -6,7 +6,71 @@
 
 bool IsT(std::string str)
 {
-    return (str == "string" || str == "int" || str == "float" || str == "double");
+    return (str == "string" || str == "int" || str == "float" || str == "double" || str == "bool");
+}
+
+bool Parser::is_binary_operator(const Token &token)
+{
+    static const std::unordered_set<std::string> binary_operators = {
+        "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=", "&&", "||"};
+    return binary_operators.find(token.value) != binary_operators.end();
+}
+
+void Parser::parse_import()
+{
+    this->Tokenstream.match("$");
+    this->Tokenstream.match("import");
+    this->Tokenstream.match(TokenCode::TK_IDENTIFIER);
+}
+
+void Parser::parse_class_member()
+{
+    if (this->Tokenstream.GetCurToken().value == "public")
+    {
+        this->Tokenstream.match("public");
+        this->Tokenstream.match(":");
+    }
+    else if (this->Tokenstream.GetCurToken().value == "private")
+    {
+        this->Tokenstream.match("private");
+        this->Tokenstream.match(":");
+    }
+    else if (IsT(this->Tokenstream.GetCurToken().value) || this->Tokenstream.GetCurToken().code == TK_IDENTIFIER)
+    {
+        this->Tokenstream.Next();
+        this->Tokenstream.match(TK_IDENTIFIER);
+        if (this->Tokenstream.GetCurToken().value == "(")
+            this->parse_function();
+        else
+            this->parse_variable();
+    }
+    else
+    {
+        Message::Error("Unknow token [" + this->Tokenstream.GetCurToken().value + "]", CP_ERR, CP_UNKNOW_TOKEN, true);
+    }
+}
+
+void Parser::parse_class_members()
+{
+    while (this->Tokenstream.GetCurToken().value != "}" && this->Tokenstream.number < this->Tokenstream.Size())
+    {
+        this->parse_class_member();
+    }
+}
+
+void Parser::parse_class()
+{
+    this->Tokenstream.match("class");
+    this->Tokenstream.match(TokenCode::TK_IDENTIFIER);
+    if (this->Tokenstream.GetCurToken().value == ":")
+    {
+        this->Tokenstream.match(":");
+        this->Tokenstream.match(TokenCode::TK_IDENTIFIER);
+    }
+    this->Tokenstream.match("{");
+    this->parse_class_members();
+    this->Tokenstream.match("}");
+    this->Tokenstream.match(";");
 }
 
 void Parser::parse_function_call()
@@ -17,6 +81,26 @@ void Parser::parse_function_call()
     this->Tokenstream.match("(");
 }
 
+void Parser::parse_default_value()
+{
+    if (IsT(this->Tokenstream.GetCurToken().value))
+        this->Tokenstream.Next();
+    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_STRING)
+        this->Tokenstream.match(TK_LITERAL_STRING);
+    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_FLOAT)
+        this->Tokenstream.match(TK_LITERAL_FLOAT);
+    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_DOUBLE)
+        this->Tokenstream.match(TK_LITERAL_DOUBLE);
+    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_INT)
+        this->Tokenstream.match(TK_LITERAL_INT);
+    else
+        this->Tokenstream.match(TK_LITERAL_BOOL);
+
+    this->Tokenstream.match("(");
+    this->parse_parameters();
+    this->Tokenstream.match(")");
+}
+
 void Parser::parse_parameter()
 {
     if (IsT(this->Tokenstream.GetCurToken().value) || this->Tokenstream.GetCurToken().code == TK_IDENTIFIER)
@@ -25,7 +109,7 @@ void Parser::parse_parameter()
         if (this->Tokenstream.GetNextToken().value == "=")
         {
             this->Tokenstream.match("=");
-            this->Tokenstream.Next();
+            this->parse_default_value();
         }
     }
 }
@@ -121,7 +205,14 @@ void Parser::parse_operand()
         return;
     if (parse_unary_expression())
         return;
-    parse_binary_expression();
+    if (is_binary_operator(this->Tokenstream.GetCurToken()))
+    {
+        parse_binary_expression();
+    }
+    else
+    {
+        Message::Error("Unexpected token: " + this->Tokenstream.GetCurToken().value, CP_ERR, CP_UNKNOW_TOKEN, true);
+    }
 }
 
 bool Parser::parse_primary()
@@ -133,6 +224,8 @@ bool Parser::parse_primary()
         this->Tokenstream.match(TK_LITERAL_FLOAT);
     else if (NToken.code == TK_LITERAL_INT)
         this->Tokenstream.match(TK_LITERAL_INT);
+    else if (NToken.code == TK_LITERAL_BOOL)
+        this->Tokenstream.match(TK_LITERAL_BOOL);
     else if (NToken.code == TK_IDENTIFIER)
         this->parse_function_call();
     else
@@ -178,9 +271,11 @@ void Parser::parse_statement()
             Message::Error("Unknow token [" + this->Tokenstream.GetNextToken().value + "]", CP_ERR, CP_UNKNOW_TOKEN, true);
     }
     else if (this->Tokenstream.GetCurToken().code == TK_KEYWORD_RETURN)
-    {
         this->parse_return();
-    }
+    else if (this->Tokenstream.GetCurToken().value == "{")
+        this->parse_compound();
+    else if (is_binary_operator(this->Tokenstream.GetCurToken()) || this->parse_primary() || this->parse_unary_expression())
+        this->parse_operand();
 }
 
 void Parser::parse_function()
@@ -204,15 +299,67 @@ void Parser::parse_variable()
     this->Tokenstream.match(";");
 }
 
+void Parser::parse_namespace_members()
+{
+    while (this->Tokenstream.GetCurToken().value != "}" && this->Tokenstream.number < this->Tokenstream.Size())
+    {
+        if (this->Tokenstream.GetCurToken().value == "class")
+        {
+            this->parse_class();
+        }
+        else if (IsT(this->Tokenstream.GetCurToken().value) || this->Tokenstream.GetCurToken().code == TK_IDENTIFIER)
+        {
+            this->Tokenstream.Next();
+            this->Tokenstream.match(TK_IDENTIFIER);
+            if (this->Tokenstream.GetCurToken().value == "(")
+                this->parse_function();
+            else
+                this->parse_variable();
+        }
+        else
+        {
+            Message::Error("Unknow token [" + this->Tokenstream.GetCurToken().value + "] " , CP_ERR, CP_UNKNOW_TOKEN, true);
+        }
+    }
+}
+
+void Parser::parse_namespace()
+{
+    this->Tokenstream.match(TK_KEYWORD_NAMESPACE);
+    this->Tokenstream.match(TK_IDENTIFIER);
+    this->Tokenstream.match("{");
+    this->parse_namespace_members();
+    this->Tokenstream.match("}");
+    this->Tokenstream.match(";");
+}
+
 void Parser::parse()
 {
-    if (IsT(this->Tokenstream.GetCurToken().value) || this->Tokenstream.GetCurToken().code == TK_IDENTIFIER)
+    while (this->Tokenstream.number < this->Tokenstream.Size())
     {
-        Tokenstream.Next();
-        this->Tokenstream.match(TK_IDENTIFIER);
-        if (this->Tokenstream.GetCurToken().value == "(")
-            this->parse_function();
-        else
-            this->parse_variable();
+        if (IsT(this->Tokenstream.GetCurToken().value) || this->Tokenstream.GetCurToken().code == TK_IDENTIFIER)
+        {
+            this->Tokenstream.Next();
+            this->Tokenstream.match(TK_IDENTIFIER);
+            if (this->Tokenstream.GetCurToken().value == "(")
+            {
+                this->parse_function();
+            }
+            else
+                this->parse_variable();
+        }
+        else if (this->Tokenstream.GetCurToken().code == TokenCode::TK_KEYWORD_CLASS)
+        {
+            this->parse_class();
+        }
+        else if (this->Tokenstream.GetCurToken().code == TokenCode::TK_DELIMITER_FMON)
+        {
+            // the header defines
+            this->parse_import();
+        }
+        else if (this->Tokenstream.GetCurToken().code == TokenCode::TK_KEYWORD_NAMESPACE)
+        {
+            this->parse_namespace();
+        }
     }
 }

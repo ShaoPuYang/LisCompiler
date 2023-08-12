@@ -41,8 +41,8 @@ int main(int argc, char **argv)
             std::string temp = "File: " + TargetFile + "\n";
             for (int i = 0; i < TargetCodeTokenStream.Size(); i++)
             {
-                TargetCodeTokenStream.Next();
                 Token tempT = TargetCodeTokenStream.GetCurToken();
+                TargetCodeTokenStream.Next();
                 temp += std::to_string((int)tempT.code) + " " + tempT.value + " " + std::to_string(tempT.line) + "\n";
             }
             temp += "FileEnd: " + TargetFile + "\n";

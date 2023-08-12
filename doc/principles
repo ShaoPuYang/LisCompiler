@@ -39,7 +39,7 @@ function_name       ::= identifier
 parameters          ::= parameter {"," parameter}
 parameter           ::= type identifier ["=" default_value]
 
-default_value       ::= string | integer | float | boolean | type "(" [parameters] ")"
+default_value       ::= string | integer | float | boolean | type | function_call "(" [parameters] ")"
 
 compound_statement  ::= "{" {statement} "}" [";"]
 
