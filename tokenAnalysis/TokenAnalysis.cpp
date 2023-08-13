@@ -78,20 +78,20 @@ void Parser::parse_function_call()
     this->Tokenstream.match(TokenCode::TK_IDENTIFIER);
     this->Tokenstream.match("(");
     this->parse_compound();
-    this->Tokenstream.match("(");
+    this->Tokenstream.match(")");
 }
 
 void Parser::parse_default_value()
 {
     if (IsT(this->Tokenstream.GetCurToken().value))
         this->Tokenstream.Next();
-    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_STRING)
+    else if (this->Tokenstream.GetCurToken().code == TK_LITERAL_STRING)
         this->Tokenstream.match(TK_LITERAL_STRING);
-    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_FLOAT)
+    else if (this->Tokenstream.GetCurToken().code == TK_LITERAL_FLOAT)
         this->Tokenstream.match(TK_LITERAL_FLOAT);
-    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_DOUBLE)
+    else if (this->Tokenstream.GetCurToken().code == TK_LITERAL_DOUBLE)
         this->Tokenstream.match(TK_LITERAL_DOUBLE);
-    else if(this->Tokenstream.GetCurToken().code == TK_LITERAL_INT)
+    else if (this->Tokenstream.GetCurToken().code == TK_LITERAL_INT)
         this->Tokenstream.match(TK_LITERAL_INT);
     else
         this->Tokenstream.match(TK_LITERAL_BOOL);
@@ -116,7 +116,7 @@ void Parser::parse_parameter()
 
 void Parser::parse_parameters()
 {
-    while (this->Tokenstream.GetCurToken().value != ")")
+    while (this->Tokenstream.GetCurToken().value != ")" && this->Tokenstream.number < this->Tokenstream.Size())
     {
         if (this->Tokenstream.number + 1 == this->Tokenstream.Size())
             Message::Error("Can't find the ; or )", CP_ERR, CP_NOTFIND_TOKEN, true);
@@ -283,10 +283,12 @@ void Parser::parse_function()
     this->Tokenstream.match("(");
     if (this->Tokenstream.GetNextToken().value != ")")
         this->parse_parameters();
-    if (this->Tokenstream.GetCurToken().value == ";")
+    if (this->Tokenstream.GetCurToken().value == "{") // Check if the current token is '{'
+        this->parse_compound();
+    else if (this->Tokenstream.GetCurToken().value == ";") // Check if the current token is ';'
         this->Tokenstream.match(";");
     else
-        this->parse_compound();
+        Message::Error("Expected '{' or ';' after function declaration", CP_ERR, CP_NOTFIND_TOKEN, true);
 }
 
 void Parser::parse_variable()
@@ -318,7 +320,7 @@ void Parser::parse_namespace_members()
         }
         else
         {
-            Message::Error("Unknow token [" + this->Tokenstream.GetCurToken().value + "] " , CP_ERR, CP_UNKNOW_TOKEN, true);
+            Message::Error("Unknow token [" + this->Tokenstream.GetCurToken().value + "] ", CP_ERR, CP_UNKNOW_TOKEN, true);
         }
     }
 }
@@ -342,9 +344,7 @@ void Parser::parse()
             this->Tokenstream.Next();
             this->Tokenstream.match(TK_IDENTIFIER);
             if (this->Tokenstream.GetCurToken().value == "(")
-            {
                 this->parse_function();
-            }
             else
                 this->parse_variable();
         }
